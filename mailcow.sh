@@ -7,30 +7,14 @@ GREEN="\e[32m"
 RED="\e[31m"
 RESET="\e[0m"
 
-# Set your Mailcow domain and check if already set
-MAILCOW_DOMAIN=${1:-""}
-
-if [ -z "$MAILCOW_DOMAIN" ]; then
-  read -p "Enter your Mailcow domain (e.g., mail.example.com): " MAILCOW_DOMAIN
-fi
-
-if [ -z "$MAILCOW_DOMAIN" ]; then
-  echo -e "${RED}Error: Domain name is required.${RESET}"
-  exit 1
-fi
-
-# Function to check if Docker is installed
-check_docker_installed() {
-  if ! command -v docker &> /dev/null; then
-    echo -e "${RED}Error: Docker is not installed.${RESET}"
-    exit 1
-  else
-    echo -e "${GREEN}✅ Docker is installed.${RESET}"
-  fi
-}
 
 # Check if Docker is installed
-check_docker_installed
+if ! command -v docker &> /dev/null; then
+  echo -e "${RED}Error: Docker is not installed.${RESET}"
+  exit 1
+else
+  echo -e "${GREEN}✅ Docker is installed.${RESET}"
+fi
 
 # Clone Mailcow repository if not already cloned
 if [ ! -d "mailcow-dockerized" ]; then
@@ -47,6 +31,23 @@ fi
 # Copy the example configuration file
 echo -e "${GREEN}🔧 Setting up configuration file...${RESET}"
 cp mailcow.conf.example mailcow.conf
+
+# Set your Mailcow domain and check if already set
+MAILCOW_DOMAIN=${1:-""}
+
+if [ -z "$MAILCOW_DOMAIN" ]; then
+  read -p "Enter your Mailcow domain (e.g., mail.example.com): " MAILCOW_DOMAIN
+fi
+
+if [ -z "$MAILCOW_DOMAIN" ]; then
+  echo -e "${RED}Error: Domain name is required.${RESET}"
+  read -p "Enter your Mailcow domain (e.g., mail.example.com): " MAILCOW_DOMAIN
+fi
+
+if [ -z "$MAILCOW_DOMAIN" ]; then
+  echo -e "${RED}Error: Domain name is required.${RESET}"
+  exit 1
+fi
 
 # Update the MAILCOW_HOSTNAME in mailcow.conf
 echo -e "${GREEN}🔧 Setting domain to $MAILCOW_DOMAIN...${RESET}"

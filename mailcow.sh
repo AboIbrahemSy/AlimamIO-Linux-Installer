@@ -8,13 +8,7 @@ RED="\e[31m"
 RESET="\e[0m"
 
 
-# Check if Docker is installed
-if ! command -v docker &> /dev/null; then
-  echo -e "${RED}Error: Docker is not installed.${RESET}"
-  exit 1
-else
-  echo -e "${GREEN}✅ Docker is installed.${RESET}"
-fi
+echo -e "${CYAN}🔧 Starting mailcow Installation...${RESET}"
 
 # Clone Mailcow repository if not already cloned
 if [ ! -d "mailcow-dockerized" ]; then

@@ -2,6 +2,7 @@
 
 set -e
 
+# Colors
 GREEN="\e[32m"
 RED="\e[31m"
 CYAN="\e[36m"
@@ -9,20 +10,37 @@ RESET="\e[0m"
 
 echo -e "${CYAN}🔧 Starting n8n Installation...${RESET}"
 
-# Create project folder
+# Create project directory
 mkdir -p n8n-docker && cd n8n-docker
 
-# Prompt for basic config
-read -p "Enter domain name (or leave blank to use localhost): " DOMAIN
+# Prompt for domain name
+read -p "🌐 Enter domain name (or leave blank for localhost): " DOMAIN
 DOMAIN=${DOMAIN:-localhost}
 
-read -p "Enter a username for n8n (or leave blank to skip basic auth): " N8N_USER
-read -s -p "Enter a password for n8n (leave blank to skip): " N8N_PASSWORD
+# Prompt for timezone
+read -p "🕒 Enter your timezone (default: Asia/Riyadh): " TIMEZONE
+TIMEZONE=${TIMEZONE:-Asia/Riyadh}
+
+# Prompt for authentication
+read -p "👤 Enter username for n8n (leave blank to skip auth): " N8N_USER
+read -s -p "🔒 Enter password for n8n (leave blank to skip): " N8N_PASSWORD
 echo ""
 
-# Generate Docker Compose file
+# Confirm values
+echo -e "${CYAN}\n🔍 Configuration Summary:${RESET}"
+echo -e "${CYAN}Domain:${RESET} ${DOMAIN}"
+echo -e "${CYAN}Timezone:${RESET} ${TIMEZONE}"
+if [[ -n "$N8N_USER" ]]; then
+  echo -e "${CYAN}Basic Auth:${RESET} Enabled (user: $N8N_USER)"
+else
+  echo -e "${CYAN}Basic Auth:${RESET} Disabled"
+fi
+
+# Create docker-compose.yml
+echo -e "${CYAN}⚙️  Creating Docker Compose file...${RESET}"
+
 cat > docker-compose.yml <<EOF
-version: "3.1"
+version: "3.8"
 
 services:
   n8n:
@@ -31,8 +49,8 @@ services:
     ports:
       - "5678:5678"
     environment:
-      - TZ=Europe/Berlin
-      - GENERIC_TIMEZONE=Europe/Berlin
+      - TZ=${TIMEZONE}
+      - GENERIC_TIMEZONE=${TIMEZONE}
       - WEBHOOK_TUNNEL_URL=https://${DOMAIN}
 EOF
 
@@ -44,14 +62,21 @@ cat >> docker-compose.yml <<EOF
 EOF
 fi
 
-echo -e "${CYAN}📦 Pulling n8n Docker image and starting...${RESET}"
-docker-compose pull
-docker-compose up -d
+cat >> docker-compose.yml <<EOF
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+EOF
 
-echo -e "${GREEN}✅ n8n is now running!${RESET}"
+# Pull and start container
+echo -e "${CYAN}📦 Pulling Docker image and starting n8n...${RESET}"
+docker compose pull
+docker compose up -d
+
+# Output results
+echo -e "\n${GREEN}✅ n8n is now running!${RESET}"
 echo -e "${GREEN}🌐 Access it at: http://${DOMAIN}:5678${RESET}"
 if [[ -n "$N8N_USER" ]]; then
-  echo -e "${GREEN}🔐 Login with username: $N8N_USER${RESET}"
+  echo -e "${GREEN}🔐 Login with: ${N8N_USER}${RESET}"
 fi
 
 exit 0
